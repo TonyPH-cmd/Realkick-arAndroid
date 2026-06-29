@@ -1,96 +1,98 @@
 # RealKick AR ⚽🏆
 
-**RealKick AR** es una aplicación móvil de Realidad Aumentada interactiva de última generación construida de forma nativa en **Kotlin** y **Jetpack Compose**. La aplicación utiliza el pipeline combinado de **ARCore** y **Google ML Kit** para clasificar superficies, aplicar filtros avanzados contra ruido geométrico, y ofrecer una experiencia interactiva estable y optimizada a 60 FPS.
+* [Leer en Español 🇪🇸](./README.es.md)
 
-La aplicación cuenta con dos modalidades principales:
-1. **Tanda de Penales AR**: Un juego interactivo donde colocas una portería 3D y disparas penales contra un arquero inteligente con físicas reales.
-2. **Historia del Fútbol AR**: Un museo interactivo en realidad aumentada que te permite explorar modelos tridimensionales icónicos (Balón Uruguay 1930, Botín de Oro, Silbato de Plata) con información histórica detallada.
+**RealKick AR** is a next-generation interactive Augmented Reality mobile application built natively in **Kotlin** and **Jetpack Compose**. The app utilizes a combined pipeline of **ARCore** and **Google ML Kit** to classify surfaces, apply advanced geometric noise filtering, and deliver a stable and optimized 60 FPS interactive experience.
+
+The app features two main modes:
+1. **AR Penalty Shootout**: An interactive game where you place a 3D goal and take penalty kicks against an intelligent goalkeeper with real physics.
+2. **AR Football History**: An interactive augmented reality museum that allows you to explore iconic 3D models (Uruguay 1930 Ball, Golden Boot, Silver Whistle) with detailed historical descriptions.
 
 ---
 
-## 📸 Capturas de Pantalla (Funcionamiento)
+## 📸 Screenshots (Operation)
 
-A continuación se muestran capturas reales de la aplicación funcionando con detección de superficies elevadas y visualización en Realidad Aumentada:
+Below are real screenshots of the application running with elevated surface detection and augmented reality rendering:
 
-| ⚽ Modo Juego (Tanda de Penales) | 🏆 Museo Histórico AR |
+| ⚽ Game Mode (Penalty Shootout) | 🏆 AR Football History Museum |
 |:---:|:---:|
 | ![Gameplay 1](./screenshots/screenshot_gameplay_1.png) | ![History 1](./screenshots/screenshot_history_1.png) |
-| *Colocación de portería 3D en superficies planas reales* | *Exploración de reliquias del fútbol en tiempo real* |
+| *Placing the 3D goal on real flat surfaces* | *Exploring football relics in real-time* |
 
 ---
 
-## 🛠️ Características Técnicas de Realidad Aumentada
+## 🛠️ Technical AR Features
 
-Para garantizar un funcionamiento 100% estable de inmediato y solucionar los problemas habituales en entornos reflectantes o saturados de objetos (como laptops o controles), se implementó un pipeline geométrico heurístico semi-asistido:
+To ensure a 100% stable out-of-the-box experience and resolve common issues in reflective environments or cluttered spaces (such as laptops or controllers on desks), we implemented a semi-assisted heuristic geometric pipeline:
 
-### 1. Segregación de Planos por Capas de Altura (Delta-Y Isolation)
-Si el usuario escanea el piso y luego apunta a una mesa, ARCore tiende a deformar o estirar el plano original del piso hacia arriba. Para evitar esto:
-- El sistema monitorea la altura de detección inicial de cada plano (`initialHeight`).
-- Si se detecta un cambio de altura en el plano superior a los **15 centímetros** (`deltaY > 0.15f`), el sistema ancla el plano original a su nivel de suelo y obliga a crear un **plano virtual totalmente nuevo e independiente** para la superficie elevada.
+### 1. Height-Based Plane Segregation (Delta-Y Isolation)
+If the user scans the floor and then points at a table, ARCore tends to deform or stretch the original floor plane upwards. To prevent this:
+- The system monitors the initial detection height of each plane (`initialHeight`).
+- If a plane's height changes by more than **15 centimeters** (`deltaY > 0.15f`), the system anchors the original plane to its ground level and forces the creation of a **completely new and independent virtual plane** for the elevated surface.
 
-### 2. Filtrado de Valores Atípicos (RANSAC / Outlier Removal)
-Evita que los modelos 3D (la Copa o la portería) floten o se desplacen hacia arriba debido a objetos depositados sobre la mesa (como laptops o ratones):
-- Se calcula la mediana estadística de la nube de puntos.
-- Si un grupo de puntos se desvía más de **3 centímetros hacia arriba** de la mediana inicial, se clasifican como *outliers* y se descartan en el acto para el cálculo del plano base.
+### 2. Outlier Removal (RANSAC)
+Prevents 3D models (like the Trophy or Goal) from floating or snapping upwards due to physical objects resting on the table (such as laptops, mice, or keyboards):
+- The system calculates the statistical median height of the point cloud.
+- If a group of points deviates more than **3 centimeters upwards** from the initial median, they are classified as *outliers* and discarded on the fly for the base surface calculation.
 
-### 3. Coalescencia de Planos (Plane Merging Control)
-Evita que ARCore fragmente una sola superficie continua en múltiples mini-planos flotantes a alturas ligeramente desfasadas:
-- Si dos planos horizontales adyacentes en el espacio tienen una diferencia de altura menor a **5 centímetros**, se fusionan en un único plano maestro utilizando la altura de la superficie con mayor cantidad de puntos de confianza de la nube de puntos.
+### 3. Plane Merging Control (Coalescence)
+Prevents ARCore from fragmenting a single continuous surface into multiple floating mini-planes at slightly offset heights:
+- If two adjacent horizontal planes in space have a height difference of less than **5 centimeters**, they are merged into a single master plane using the height of the surface with the highest count of high-confidence points.
 
-### 4. Raycast Clasificado por Distancia (Raycast Layering)
-- Al tocar la pantalla, en lugar de tomar el primer plano que impacte el rayo (que puede ser el piso de fondo debido a una mala proyección), el Raycast evalúa todos los planos impactados en su trayectoria.
-- Si detecta un plano cuya altura (Y) esté más cerca de la posición física de la cámara (la mesa), el sistema le otorga **prioridad absoluta** y descarta el plano del fondo.
+### 4. Distance-Based Raycast (Raycast Layering)
+- When touching the screen, instead of picking the first plane hit by the ray (which might be the floor in the background due to incorrect projection), the Raycast evaluates all planes intersected along its path.
+- If it detects a plane whose height (Y) is closer to the physical camera (like a table), the system grants it **absolute priority** and discards the background plane.
 
-### 5. Reseteo Temporal por Cambios de Ángulo (Pitch-Driven Reset)
-- El sistema calcula el ángulo de inclinación (**Pitch**) de la cámara del dispositivo en tiempo real.
-- Si el usuario pasa de apuntar hacia abajo (piso) a apuntar hacia el frente/diagonal (mesa) con un cambio rápido superior a los **15 grados**, se vacía temporalmente el búfer inestable de puntos característicos. Esto fuerza a recalcular los bordes de la mesa sin arrastrar la interferencia visual del piso.
+### 5. Pitch-Driven Reset
+- The system calculates the camera's tilt angle (**Pitch**) in real-time.
+- If the user shifts from pointing downwards (floor) to pointing forwards/diagonally (table) with a rapid rotation greater than **15 degrees**, the unstable buffer of feature points is temporarily cleared. This forces a clean recalculation of the table's edges without bringing over visual interference from the floor.
 
-### 6. Flujo Asíncrono Optimizado
-- Todos los cálculos matemáticos de gradientes (filtro de Sobel), mediana y coalescencia se ejecutan en segundo plano dentro de una corrutina utilizando `Dispatchers.Default` en intervalos de **300 ms**.
-- Esto garantiza que el hilo de renderizado de los modelos 3D y la interfaz gráfica de usuario no sufra tirones, manteniendo los **60 FPS estables**.
-
----
-
-## 📂 Estructura Principal del Código
-
-El núcleo de lógica de la aplicación se encuentra en los siguientes componentes Kotlin dentro de `app/src/main/java/com/example/realkick/ui/`:
-
-- **[ARPlaneUtils.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/ARPlaneUtils.kt)**: Contiene toda la lógica matemática de filtrado, unproyección de coordenadas (`getSimulatedTouchRaycast`), fusión de planos y RANSAC para remover outliers.
-- **[VisualAIAnalyzer.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/VisualAIAnalyzer.kt)**: Se encarga de procesar los frames de cámara usando la segmentación y clasificación de Google ML Kit en tiempo real.
-- **[ARGameScreen.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/ARGameScreen.kt)**: Pantalla de la tanda de penales. Maneja el estado de colocación, físicas del balón, disparos y el arquero dinámico.
-- **[HistoryARScreen.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/HistoryARScreen.kt)**: Pantalla del museo histórico de fútbol. Permite cargar y rotar los modelos 3D y muestra tarjetas de información histórica detallada.
+### 6. Optimized Asynchronous Flow
+- All heavy mathematical calculations for gradients (Sobel filter), median height, and coalescence run in the background using `Dispatchers.Default` at strict **300 ms** intervals.
+- This ensures that the rendering thread for the 3D models and Compose UI never stutters, maintaining a stable **60 FPS**.
 
 ---
 
-## 🚀 Cómo Empezar
+## 📂 Core Code Structure
 
-### Prerrequisitos
-- Android Studio Ladybug o superior.
-- Dispositivo físico Android con soporte para **Google Play Services para RA (ARCore)**.
+The core logic of the application resides in the following Kotlin components under `app/src/main/java/com/example/realkick/ui/`:
+
+- **[ARPlaneUtils.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/ARPlaneUtils.kt)**: Contains all the mathematical logic for filtering, coordinate unprojection (`getSimulatedTouchRaycast`), plane merging, and RANSAC outlier removal.
+- **[VisualAIAnalyzer.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/VisualAIAnalyzer.kt)**: Processes camera frames using Google ML Kit Object Detection & Segmentation in real-time.
+- **[ARGameScreen.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/ARGameScreen.kt)**: The penalty shootout screen. Manages placement state, ball physics, kicks, and the goalkeeper's movement.
+- **[HistoryARScreen.kt](file:///C:/Users/tonyp/.gemini/antigravity/scratch/RealKick/app/src/main/java/com/example/realkick/ui/HistoryARScreen.kt)**: The football history museum screen. Loads and rotates 3D models and shows detailed historical info cards.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Android Studio Ladybug or higher.
+- A physical Android device with **Google Play Services for AR (ARCore)** installed.
 - Android SDK 33+.
 
-### Compilación y Ejecución
-1. Clona este repositorio en tu máquina local.
-2. Abre el proyecto en Android Studio.
-3. Ejecuta una limpieza y compilación mediante Gradle:
+### Compiling and Running
+1. Clone this repository to your local machine.
+2. Open the project in Android Studio.
+3. Clean and compile the project using Gradle:
    ```powershell
    ./gradlew clean compileDebugKotlin
    ```
-4. Construye e instala el APK de depuración en tu dispositivo:
+4. Build and install the debug APK on your device:
    ```powershell
    ./gradlew assembleDebug
    ```
 
 ---
 
-## 🌐 Tecnologías Utilizadas
-- **Lenguaje**: Kotlin (100% nativo)
+## 🌐 Technologies Used
+- **Language**: Kotlin (100% native)
 - **UI Toolkit**: Jetpack Compose (Material Design 3)
-- **RA Engine**: Sceneview AR (basado en Google Filament y ARCore)
+- **AR Engine**: Sceneview AR (based on Google Filament and ARCore)
 - **Computer Vision**: Google ML Kit Object Detection & Segmentation
-- **Concurrencia**: Kotlin Coroutines & Flow
+- **Concurrency**: Kotlin Coroutines & Flow
 
 ---
 
-## 🔒 Licencia
-Este proyecto es de código abierto. Siéntete libre de utilizar el código para fines educativos y de desarrollo de aplicaciones de RA.
+## 🔒 License
+This project is open-source. Feel free to use the code for educational purposes and AR application development.
