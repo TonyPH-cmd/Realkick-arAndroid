@@ -974,14 +974,13 @@ internal fun isPositionSaturatedNonFloor(
         val pz = points.get(4 * i + 2)
         
         val dx = px - targetPos.x
-        val dy = py - targetPos.y
         val dz = pz - targetPos.z
-        val distSq = dx * dx + dy * dy + dz * dz
+        val distHorizontalSq = dx * dx + dz * dz
         
-        if (distSq <= radius * radius) {
-            val relY = py - camY
-            // Si el punto NO está al nivel de la superficie activa, lo contamos
-            if (relY !in validRange) {
+        if (distHorizontalSq <= radius * radius) {
+            val dy = py - targetPos.y
+            // Si el punto está más de 4 centímetros arriba de la superficie (como una laptop o mouse)
+            if (dy > 0.04f && dy < 0.5f) {
                 accumulated++
                 if (accumulated > maxPoints) {
                     return true
