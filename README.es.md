@@ -16,7 +16,15 @@ A continuación se muestran capturas reales de la aplicación funcionando con de
 
 | ⚽ Modo Juego (Tanda de Penales) | 🏆 Museo Histórico AR |
 |:---:|:---:|
-| ![Gameplay 1](./screenshots/screenshot_gameplay_1.png) | ![History 1](./screenshots/screenshot_history_1.png) |
+| 
+
+https://github.com/user-attachments/assets/f2b7cdda-2831-4b29-b396-e98ec4985984
+
+
+
+https://github.com/user-attachments/assets/e5b8c56f-f92b-4a47-9a2d-5683846e0cca
+
+
 | *Colocación de portería 3D en superficies planas reales* | *Exploración de reliquias del fútbol en tiempo real* |
 
 ---
