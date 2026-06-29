@@ -745,7 +745,7 @@ val pixelStride = yPlane.pixelStride
 val width = cameraImage.width
 val height = cameraImage.height
 
-// Downsampling ultra-rÃ¡pido a 80x60 en el hilo principal (toma menos de 0.5ms)
+// Downsampling ultra-rápido a 80x60 en el hilo principal (toma menos de 0.5ms)
 val gridW = 80
 val gridH = 60
 val yCopied = ByteArray(gridW * gridH)
@@ -766,8 +766,27 @@ yCopied[y * gridW + x] = 127.toByte()
 }
 }
 yGrid = yCopied
+
+// --- INTEGRACIÓN CON ML KIT ---
+val nv21Bytes = ByteArray(width * height * 3 / 2)
+if (pixelStride == 1 && rowStride == width) {
+yBuffer.rewind()
+yBuffer.get(nv21Bytes, 0, width * height)
+} else {
+var destOffset = 0
+for (row in 0 until height) {
+yBuffer.position(row * rowStride)
+val remaining = yBuffer.remaining()
+val bytesToCopy = kotlin.math.min(width, remaining)
+yBuffer.get(nv21Bytes, destOffset, bytesToCopy)
+destOffset += width
+}
+}
+java.util.Arrays.fill(nv21Bytes, width * height, nv21Bytes.size, 128.toByte())
+visualAIAnalyzer.analyzeFrame(nv21Bytes, width, height, 90)
+
 } catch (e: Exception) {
-// Omitir en caso de buffers vacÃ­os o bloqueados
+// Omitir en caso de buffers vacíos o bloqueados
 } finally {
 cameraImage.close()
 }
