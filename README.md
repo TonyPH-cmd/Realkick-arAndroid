@@ -17,9 +17,17 @@ Below are real screenshots of the application running with elevated surface dete
 | ⚽ Game Mode (Penalty Shootout) | 🏆 AR Football History Museum |
 |:---:|:---:|
 |
-https://github.com/user-attachments/assets/e58a97cd-de1d-41cc-90cb-367baf700298
+
+
+https://github.com/user-attachments/assets/f2b7cdda-2831-4b29-b396-e98ec4985984
+
+
+
+https://github.com/user-attachments/assets/e5b8c56f-f92b-4a47-9a2d-5683846e0cca
+
+
 | 
-https://github.com/user-attachments/assets/d37a326b-3ee3-4cbd-83e2-44abc551113c
+
 |
 | *Placing the 3D goal on real flat surfaces* | *Exploring football relics in real-time* |
 
